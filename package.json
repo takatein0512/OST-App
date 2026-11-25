@@ -1,0 +1,10 @@
+{
+  "name": "ost-board",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "OST マーケットプレイスボード（時間割）— Macのカメラで撮って、時間×ルームに貼る",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OST マーケットプレイスボード</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar" id="topbar">
+  <div class="brand">
+    <span class="brand-mark">OST</span>
+    <span class="brand-text" id="brandTitle">マーケットプレイスボード</span>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab is-active" data-view="shoot" role="tab">撮る</button>
+    <button class="tab" data-view="board" role="tab">ボード</button>
+    <button class="tab" data-view="config" role="tab">設定</button>
+  </nav>
+  <div class="topbar-right">
+    <span class="save-state" id="saveState">保存済み</span>
+    <a class="btn btn-ghost" id="stageLink" href="?view=stage" target="_blank" rel="noopener">投影を開く</a>
+  </div>
+</header>
+
+<!-- ============ 撮る ============ -->
+<main class="view is-active" id="view-shoot">
+  <div class="shoot-grid">
+
+    <section class="panel camera-panel">
+      <div class="panel-head">
+        <h2>カメラ</h2>
+        <select id="cameraSelect" class="select" aria-label="使うカメラ"></select>
+      </div>
+
+      <div class="stage-wrap" id="stageWrap">
+        <video id="video" playsinline muted autoplay></video>
+        <canvas id="canvas" hidden></canvas>
+        <img id="shot" alt="撮影した写真" hidden>
+        <span class="shot-badge" id="shotBadge" hidden>この写真で登録します</span>
+        <div class="cam-guide" id="camGuide">
+          <p>カメラを許可すると映像が出ます</p>
+          <p class="sub">iPhoneを近くに置くと「連係カメラ」が上の一覧に出ます</p>
+        </div>
+      </div>
+
+      <div class="cam-actions">
+        <button class="btn btn-primary btn-shoot" id="btnShoot">
+          <span class="shutter"></span>撮影
+        </button>
+        <button class="btn" id="btnRetake" hidden>撮り直す</button>
+        <button class="btn btn-primary btn-shoot" id="btnRegisterHere" hidden>ボードに追加</button>
+        <button class="btn btn-ghost" id="btnMirror" title="プレビューの左右反転を切り替え">左右反転</button>
+        <label class="btn btn-ghost file-btn" id="btnFile">
+          ファイルから
+          <input type="file" id="fileInput" accept="image/*" hidden>
+        </label>
+      </div>
+      <p class="hint" id="camHint">スケッチブックを机に置いて、iPhoneの連係カメラで上から撮るのが一番きれいに入ります。</p>
+    </section>
+
+    <section class="panel entry-panel">
+      <div class="panel-head"><h2>このテーマを登録</h2></div>
+
+      <div class="field">
+        <span class="field-label">テーマ（任意・写真だけでもOK）</span>
+        <input type="text" id="inTitle" class="input" placeholder="例：製造ラインの異常検知にLLMは効くのか" autocomplete="off">
+        <p class="hint ocr-note" id="ocrNote"></p>
+      </div>
+
+      <label class="field">
+        <span class="field-label">言い出した人（任意）</span>
+        <input type="text" id="inHost" class="input" placeholder="例：やまだ" autocomplete="off">
+      </label>
+
+      <div class="field">
+        <span class="field-label">置き場所</span>
+        <div class="place-pick">
+          <div class="place-col">
+            <span class="place-cap">時間</span>
+            <div id="slotPick" class="chips"></div>
+          </div>
+          <div class="place-col">
+            <span class="place-cap">ルーム</span>
+            <div id="roomPick" class="chips"></div>
+          </div>
+        </div>
+        <p class="hint">選ばずに登録すると「未配置」に入ります。あとからボードで貼れます。</p>
+      </div>
+
+      <button class="btn btn-primary btn-lg" id="btnRegister" disabled>ボードに追加</button>
+      <p class="hint" id="entryHint">まず撮影してください。</p>
+    </section>
+
+  </div>
+
+  <section class="panel recent-panel">
+    <div class="panel-head"><h2>直近に追加したテーマ</h2></div>
+    <div class="recent-strip" id="recentStrip"></div>
+  </section>
+</main>
+
+<!-- ============ ボード ============ -->
+<main class="view" id="view-board">
+  <div class="board-toolbar">
+    <div class="board-titles">
+      <h2 id="boardTitle">マーケットプレイス</h2>
+      <p id="boardSubtitle"></p>
+    </div>
+    <div class="board-tools">
+      <label class="toggle"><input type="checkbox" id="showPhotos" checked><span>写真を出す</span></label>
+      <button class="btn btn-ghost" id="btnPrint">印刷 / PDF</button>
+    </div>
+  </div>
+
+  <div class="board-scroll">
+    <div class="board" id="board"></div>
+  </div>
+
+  <section class="panel pool-panel">
+    <div class="panel-head">
+      <h2>未配置 <span class="count" id="poolCount">0</span></h2>
+      <span class="hint">カードはドラッグでマスに移動できます。クリックで編集。</span>
+    </div>
+    <div class="pool" id="pool"></div>
+  </section>
+</main>
+
+<!-- ============ 設定 ============ -->
+<main class="view" id="view-config">
+  <div class="config-grid">
+    <section class="panel">
+      <div class="panel-head"><h2>見出し</h2></div>
+      <label class="field">
+        <span class="field-label">タイトル</span>
+        <input type="text" id="cfgTitle" class="input">
+      </label>
+      <label class="field">
+        <span class="field-label">サブタイトル</span>
+        <input type="text" id="cfgSubtitle" class="input">
+      </label>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>時間枠</h2>
+        <button class="btn btn-ghost btn-sm" id="btnAddSlot">＋ 追加</button>
+      </div>
+      <div id="cfgSlots" class="cfg-list"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>ルーム</h2>
+        <div class="row-gap">
+          <button class="btn btn-ghost btn-sm" data-rooms="7">7部屋</button>
+          <button class="btn btn-ghost btn-sm" data-rooms="8">8部屋</button>
+          <button class="btn btn-ghost btn-sm" id="btnAddRoom">＋ 追加</button>
+        </div>
+      </div>
+      <div id="cfgRooms" class="cfg-list"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>文字起こし</h2></div>
+      <label class="toggle"><input type="checkbox" id="cfgOcr"><span>撮影したら自動で読み取る（ローカルのglm-ocr）</span></label>
+      <p class="hint">完全にローカルで動くのでネットは要りません。読み取りに失敗しても撮影・配置は止まりません。</p>
+      <p class="hint" id="ocrStatus"></p>
+    </section>
+
+    <section class="panel danger-panel">
+      <div class="panel-head"><h2>データ</h2></div>
+      <p class="hint">保存先は <code>data/board.json</code> と <code>data/photos/</code>。保存のたびに <code>data/history/</code> に退避されます。</p>
+      <div class="row-gap">
+        <button class="btn btn-ghost" id="btnExport">JSONを書き出す</button>
+        <button class="btn btn-danger" id="btnClearCards">カードを全消去</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- ============ 投影 ============ -->
+<main class="view stage" id="view-stage">
+  <div class="stage-head">
+    <h1 id="stageTitle"></h1>
+    <p id="stageSubtitle"></p>
+  </div>
+  <div class="board stage-board" id="stageBoard"></div>
+</main>
+
+<!-- カード編集 -->
+<dialog id="cardDialog" class="dialog">
+  <form method="dialog" class="dialog-inner">
+    <h3>カードを編集</h3>
+    <div class="dialog-body">
+      <img id="dlgPhoto" class="dlg-photo" alt="">
+      <div class="dialog-fields">
+        <label class="field">
+          <span class="field-label">テーマ</span>
+          <input type="text" id="dlgTitle" class="input">
+        </label>
+        <label class="field">
+          <span class="field-label">言い出した人</span>
+          <input type="text" id="dlgHost" class="input">
+        </label>
+        <div class="field">
+          <span class="field-label">時間</span>
+          <div id="dlgSlotPick" class="chips"></div>
+        </div>
+        <div class="field">
+          <span class="field-label">ルーム</span>
+          <div id="dlgRoomPick" class="chips"></div>
+        </div>
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn btn-danger" value="delete" id="dlgDelete">削除</button>
+      <span class="spacer"></span>
+      <button class="btn" value="cancel">やめる</button>
+      <button class="btn btn-primary" value="ok">保存</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="app.js" type="module"></script>
+</body>
+</html>
